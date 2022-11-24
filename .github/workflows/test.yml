@@ -1,0 +1,27 @@
+on: push
+
+name: Test
+jobs:
+  test:
+    name: Test Cirun Python Client
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.5.0
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install client
+        run: pip install .
+
+      - name: Sanity Check CLI
+        run: |
+          cirun -h
+          cirun repo -h
+          cirun repo add -h
+          cirun repo remove -h
+
+      - name: Run Python Tests
+        run: pytest -vv

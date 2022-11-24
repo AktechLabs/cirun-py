@@ -1,0 +1,24 @@
+on: create
+
+env:
+  HATCH_INDEX_USER: __token__
+  HATCH_INDEX_AUTH: ${{ secrets.HATCH_INDEX_AUTH }}
+
+name: Release
+jobs:
+  release:
+    name: Release Cirun Python Client
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.5.0
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Hatch Build
+        run: hatch build
+
+      - name: Hatch Publish
+        run: hatch publish -n

@@ -1,0 +1,5 @@
+rich
+typer
+hatch
+requests
+pytest
