@@ -22,6 +22,11 @@ jobs:
           cirun repo -h
           cirun repo add -h
           cirun repo remove -h
-
+          cirun cloud -h
+          cirun cloud connect -h
+          cirun cloud connect aws -h
+          cirun cloud connect azure -h
+          cirun cloud connect gcp -h
+          cirun cloud connect openstack -h
       - name: Run Python Tests
         run: pytest -vv
