@@ -28,20 +28,21 @@ cloud_connect = typer.Typer(
 cloud_app.add_typer(cloud_connect, name="connect")
 
 
+def option(name, help, *args, **kwargs):
+    return typer.Option(
+        ...,
+        name,
+        help=help,
+        # is_eager=True,
+        show_default=False,
+        *args, **kwargs
+    )
+
+
 @cloud_connect.command()
 def aws(
-        access_key=typer.Option(
-            None,
-            "--access-key",
-            help="AWS_ACCESS_KEY_ID",
-            is_eager=True,
-        ),
-        secret_key=typer.Option(
-            None,
-            "--secret-key",
-            help="AWS_SECRET_ACCESS_KEY",
-            is_eager=True,
-        ),
+        access_key=option("--access-key", help="AWS_ACCESS_KEY_ID"),
+        secret_key=option("--secret-key", help="AWS_SECRET_ACCESS_KEY"),
 ):
     """Connect AWS to Cirun"""
     credentials = {
@@ -53,10 +54,10 @@ def aws(
 
 @cloud_connect.command()
 def azure(
-        subscription_id=typer.Option(None, "--subscription-id", help="Azure subscription_id", is_eager=True),
-        tenant_id=typer.Option(None, "--tenant-id", help="Azure tenant_id", is_eager=True),
-        client_id=typer.Option(None, "--client-id", help="Azure client_id", is_eager=True),
-        client_secret=typer.Option(None, "--client-secret", help="Azure client_secret", is_eager=True),
+        subscription_id=option("--subscription-id", help="Azure subscription_id"),
+        tenant_id=option("--tenant-id", help="Azure tenant_id"),
+        client_id=option("--client-id", help="Azure client_id"),
+        client_secret=option("--client-secret", help="Azure client_secret"),
 ):
     """Connect Azure cloud to Cirun"""
     credentials = {
@@ -70,7 +71,7 @@ def azure(
 
 @cloud_connect.command()
 def gcp(
-        service_account_file=typer.Option(None, "--key-file", help="GCP Service Account Key file", is_eager=True),
+        service_account_file=option("--key-file", help="GCP Service Account Key file",),
 ):
     """Connect GCP to Cirun"""
     service_account_txt = open(service_account_file, 'r').read()
@@ -83,12 +84,12 @@ def gcp(
 
 @cloud_connect.command()
 def openstack(
-        username=typer.Option(None, "--username", help="OpenStack username", is_eager=True),
-        password=typer.Option(None, "--password", help="OpenStack password", is_eager=True),
-        auth_url=typer.Option(None, "--auth-url", help="OpenStack auth_url", is_eager=True),
-        project_id=typer.Option(None, "--project-id", help="OpenStack project_id", is_eager=True),
-        domain_id=typer.Option(None, "--domain-id", help="OpenStack domain_id", is_eager=True),
-        network=typer.Option(None, "--network", help="OpenStack network", is_eager=True),
+        username=option("--username", help="OpenStack username"),
+        password=option("--password", help="OpenStack password"),
+        auth_url=option("--auth-url", help="OpenStack auth_url"),
+        project_id=option("--project-id", help="OpenStack project_id"),
+        domain_id=option("--domain-id", help="OpenStack domain_id"),
+        network=option("--network", help="OpenStack network"),
 ):
     """Connect Openstack to Cirun"""
     credentials = {
