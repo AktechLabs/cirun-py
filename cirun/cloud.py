@@ -33,7 +33,6 @@ def option(name, help, *args, **kwargs):
         ...,
         name,
         help=help,
-        # is_eager=True,
         show_default=False,
         *args, **kwargs
     )

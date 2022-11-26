@@ -76,6 +76,20 @@ $ cirun repo remove aktech/sympy
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
+- Connect cloud provider with Cirun
+
+```bash
+cirun cloud connect aws --access-key AKIXXXXXXXXX --secret-key KFCF3yi+df0n12345678AMASDFGHJ
+
+cirun cloud connect azure \
+  --subscription-id 31184337-0346-4782-ae59-eb185fd0cfa1 \
+  --tenant-id a66e466d-698b-4a91-b9e3-949f9cc04f11 \
+  --client-id 340d01fc-ba24-43ee-844e-d364899d29e7 \
+  --client-secret KFCF3yi+df0cirunIsAwesomeIsntIt?n1DFGHJ
+
+cirun cloud connect gcp --key-file /path/to/service-account-key.json
+```
+
 ### Client
 
 ```python
