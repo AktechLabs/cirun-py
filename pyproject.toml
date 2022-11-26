@@ -24,6 +24,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+  "hatchling",
   "rich",
   "typer",
   "hatch",
