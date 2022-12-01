@@ -102,6 +102,20 @@ def openstack(
     _connect_cloud(name="openstack", credentials=credentials)
 
 
+@cloud_connect.command()
+def oracle(
+        config=option("--config", help="Oracle config file, it should have the keys: "
+                                       "'user', 'tenancy', 'compartment_id', 'fingerprint'"),
+        key_file=option("--key-file", help="Oracle private key"),
+):
+    """Connect Oracle to Cirun"""
+    credentials = {
+        "config": config,
+        "private_key":  open(key_file, 'r').read(),
+    }
+    _connect_cloud(name="oracle", credentials=credentials)
+
+
 def _connect_cloud(name, credentials):
     cirun = Cirun()
     response_json = cirun.cloud_connect(
