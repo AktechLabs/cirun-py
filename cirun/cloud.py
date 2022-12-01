@@ -104,14 +104,14 @@ def openstack(
 
 @cloud_connect.command()
 def oracle(
-        config=option("--config", help="Oracle config file, it should have the keys: "
-                                       "'user', 'tenancy', 'compartment_id', 'fingerprint'"),
+        config_file=option("--config-file", help="Oracle config file, it should have the keys: "
+                                                 "'user', 'tenancy', 'compartment_id', 'fingerprint'"),
         key_file=option("--key-file", help="Oracle private key"),
 ):
     """Connect Oracle to Cirun"""
     credentials = {
-        "config": config,
-        "private_key":  open(key_file, 'r').read(),
+        "config": open(config_file, 'r').read(),
+        "private_key": open(key_file, 'r').read(),
     }
     _connect_cloud(name="oracle", credentials=credentials)
 
