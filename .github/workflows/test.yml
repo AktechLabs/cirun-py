@@ -18,6 +18,8 @@ jobs:
 
       - name: Sanity Check CLI
         run: |
+          cirun -v
+          cirun --version
           cirun -h
           cirun repo -h
           cirun repo add -h
@@ -28,5 +30,6 @@ jobs:
           cirun cloud connect azure -h
           cirun cloud connect gcp -h
           cirun cloud connect openstack -h
+          cirun cloud connect oracle -h
       - name: Run Python Tests
         run: pytest -vv

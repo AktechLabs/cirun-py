@@ -17,6 +17,12 @@
 pip install cirun
 ```
 
+or via `conda-forge`
+
+```console
+conda install -c conda-forge cirun
+```
+
 ## Usage
 
 **cirun-py** can be used as a CLI as well as a Python client programmatically.
