@@ -33,9 +33,9 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Documentation = "https://github.com/aktechlabs/cirun#readme"
-Issues = "https://github.com/aktechlabs/cirun-docs/issues"
-Source = "https://github.com/aktechlabs/cirun-docs"
+Documentation = "https://github.com/aktechlabs/cirun-py#readme"
+Issues = "https://github.com/aktechlabs/cirun-py/issues"
+Source = "https://github.com/aktechlabs/cirun-py"
 
 [tool.hatch.version]
 path = "cirun/__about__.py"
