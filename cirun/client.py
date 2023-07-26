@@ -3,7 +3,7 @@ import os
 import requests
 from rich.console import Console
 
-API_ENDPOINT = "https://cirun.io/api/v1"
+API_ENDPOINT = "https://api.cirun.io/api/v1"
 
 
 class CirunAPIException(Exception):
@@ -30,6 +30,7 @@ class Cirun:
     def __init__(self, token=None):
         self.token = token
         self._get_credentials()
+        self.api_endpoint = os.environ.get('CIRUN_API_ENDPOINT', API_ENDPOINT)
 
     def _get_credentials(self):
         if not self.token:
@@ -46,10 +47,10 @@ class Cirun:
         }
 
     def _get(self, path, *args, **kwargs):
-        return requests.get(f"{API_ENDPOINT}/{path}", headers=self._headers(), *args, **kwargs)
+        return requests.get(f"{self.api_endpoint}/{path}", headers=self._headers(), *args, **kwargs)
 
     def _post(self, path, *args, **kwargs):
-        return requests.post(f"{API_ENDPOINT}/{path}", headers=self._headers(), *args, **kwargs)
+        return requests.post(f"{self.api_endpoint}/{path}", headers=self._headers(), *args, **kwargs)
 
     def get_repos(self, print_error=False):
         """Get all the repositories connected to cirun."""
