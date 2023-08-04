@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 
 from cirun import Cirun
-from cirun.utils import OrderCommands
+from cirun.utils import OrderCommands, option
 
 cloud_app = typer.Typer(
     cls=OrderCommands,
@@ -26,16 +26,6 @@ cloud_connect = typer.Typer(
 
 
 cloud_app.add_typer(cloud_connect, name="connect")
-
-
-def option(name, help, *args, **kwargs):
-    return typer.Option(
-        ...,
-        name,
-        help=help,
-        show_default=False,
-        *args, **kwargs
-    )
 
 
 @cloud_connect.command()
@@ -70,7 +60,7 @@ def azure(
 
 @cloud_connect.command()
 def gcp(
-        service_account_file=option("--key-file", help="GCP Service Account Key file",),
+        service_account_file=option("--key-file", help="GCP Service Account Key file", ),
 ):
     """Connect GCP to Cirun"""
     service_account_txt = open(service_account_file, 'r').read()
