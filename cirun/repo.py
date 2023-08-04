@@ -32,26 +32,17 @@ def list_():
 @repo_app.command()
 def add(
         name: str = RepoName,
-        install_github_app: Annotated[bool, typer.Option(
-            "--install-github-app",
-            help=f"Add repository to Cirun app installation. "
-                 f"Requires {GH_TOKEN_ENV_VAR} in the environment and "
-                 "installation-id option",
-        )] = False,
         installation_id: Annotated[int, typer.Option(
-            help=f"GitHub installation ID "
+            help=f"[Optional] GitHub installation ID for the cirun application,"
+                 f"this will add repository to Cirun app installation. "
+                 f"Requires {GH_TOKEN_ENV_VAR} in the environment"
         )] = None,
 ):
     """Activate cirun on given repository"""
     cirun = Cirun()
-    if install_github_app and not installation_id:
-        return _print_error_data("ERROR: 'installation-id' is required, when "
-                                 "'--install-github-app' option is specified")
-
     response_json = cirun.set_repo(
         name,
         active=True,
-        install_github_app=install_github_app,
         installation_id=installation_id,
         print_error=True,
     )

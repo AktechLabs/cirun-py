@@ -53,7 +53,6 @@ class Cirun:
             self,
             name,
             active=True,
-            install_github_app=None,
             print_error=False,
             installation_id=None
     ):
@@ -62,14 +61,21 @@ class Cirun:
             "repository": name,
             "active": active
         }
-        if install_github_app:
-            self.install_github_app(name, installation_id)
+        gh_response_json = {}
+        if installation_id:
+            gh_response_json = self.install_github_app(name, installation_id)
         response = self._post("repo", json=data)
         if response.status_code not in [200, 201]:
             if print_error:
                 _print_error(response)
             return response.json()
-        return response.json()
+        response = response.json()
+        if gh_response_json:
+            response = {
+                **response,
+                "github_installation": gh_response_json
+            }
+        return response
 
     def _get_github_repo_id(self, owner, repo):
         url = f"{GITHUB_API}/repos/{owner}/{repo}"
@@ -97,7 +103,6 @@ class Cirun:
             "message": f"GitHub Installation done",
             "status_code": response.status_code
         }
-        print_success_json(response)
         return response
 
     def clouds(self, print_error=False):
