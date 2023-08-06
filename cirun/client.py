@@ -2,7 +2,7 @@ import os
 
 import requests
 
-from cirun.utils import print_success_json, _print_error, _print_error_data
+from cirun.utils import _print_error, _print_error_data
 
 API_ENDPOINT = "https://api.cirun.io/api/v1"
 GITHUB_API = "https://api.github.com"
@@ -27,7 +27,7 @@ class Cirun:
             except KeyError:
                 msg = "Could not find CIRUN_API_KEY in environment variables"
                 _print_error_data(msg)
-                raise ValueError(msg)
+                raise KeyError(msg)
 
     def _headers(self):
         return {
@@ -40,6 +40,9 @@ class Cirun:
 
     def _post(self, path, *args, **kwargs):
         return requests.post(f"{self.api_endpoint}/{path}", headers=self._headers(), *args, **kwargs)
+
+    def _put(self, path, *args, **kwargs):
+        return requests.put(f"{self.api_endpoint}/{path}", headers=self._headers(), *args, **kwargs)
 
     def get_repos(self, print_error=False):
         """Get all the repositories connected to cirun."""
@@ -104,6 +107,62 @@ class Cirun:
             "status_code": response.status_code
         }
         return response
+
+    def update_access_control(self, org, repository_resource_access):
+        json = {
+            "org": org,
+            "repository_resource_access": repository_resource_access
+        }
+        response = self._put("access-control", json=json)
+        return response
+
+    def get_access_control(self, org):
+        response = self._get("access-control", json={"org": org})
+        if response.status_code != 200:
+            return
+        return response.json()
+
+    def _create_access_control_repo_resource_data(self, repo, resources, action="add", teams=None):
+        repository_resource_access = {
+            "repository": repo,
+            "resources": resources,
+            "action": action
+        }
+        if teams:
+            repository_resource_access = {
+                **repository_resource_access,
+                "teams": teams
+            }
+        return repository_resource_access
+
+    def remove_repo_from_resources(self, org, repo, resources, teams=None):
+        repository_resource_access = self._create_access_control_repo_resource_data(
+            repo, resources, action="remove", teams=teams
+        )
+        return self.update_access_control(org, [repository_resource_access])
+
+    def add_repo_to_resources(self, org, repo, resources, teams=None):
+        repository_resource_access = self._create_access_control_repo_resource_data(
+            repo, resources, action="add", teams=teams
+        )
+        return self.update_access_control(org, [repository_resource_access])
+
+    def _get_repo_policy(self, access_yml, repo):
+        for policy in access_yml["policies"]:
+            if policy['repo'] == repo:
+                return policy['id']
+
+    def get_repo_resources(self, org, repo):
+        access_control = self.get_access_control(org)
+        if not access_control:
+            return
+        access_yml = access_control["access_yml"]
+        policy_id = self._get_repo_policy(access_yml, repo)
+        repo_resources = []
+        for access_item in access_yml["access_control"]:
+            if policy_id in access_item["policies"]:
+                repo_resources.append(access_item["resource"])
+        return repo_resources
 
     def clouds(self, print_error=False):
         """Returns all the connected cloud"""
