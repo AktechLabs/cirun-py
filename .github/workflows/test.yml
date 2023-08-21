@@ -1,5 +1,8 @@
 on: push
 
+env:
+  CIRUN_API_KEY: ramdom-api-key
+
 name: Test
 jobs:
   test:
