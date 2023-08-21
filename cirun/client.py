@@ -122,11 +122,18 @@ class Cirun:
             return
         return response.json()
 
-    def _create_access_control_repo_resource_data(self, repo, resources, action="add", teams=None):
+    def _create_access_control_repo_resource_data(
+            self, repo,
+            resources,
+            action="add",
+            teams=None,
+            pull_request=True,
+    ):
         repository_resource_access = {
             "repository": repo,
             "resources": resources,
-            "action": action
+            "action": action,
+            "pull_request": pull_request
         }
         if teams:
             repository_resource_access = {
@@ -135,15 +142,18 @@ class Cirun:
             }
         return repository_resource_access
 
-    def remove_repo_from_resources(self, org, repo, resources, teams=None):
+    def remove_repo_from_resources(self, org, repo, resources, teams=None, pull_request=True):
+        """
+        Removes the access to the resource for the repository.
+        """
         repository_resource_access = self._create_access_control_repo_resource_data(
-            repo, resources, action="remove", teams=teams
+            repo, resources, action="remove", teams=teams, pull_request=pull_request
         )
         return self.update_access_control(org, [repository_resource_access])
 
-    def add_repo_to_resources(self, org, repo, resources, teams=None):
+    def add_repo_to_resources(self, org, repo, resources, teams=None, pull_request=True):
         repository_resource_access = self._create_access_control_repo_resource_data(
-            repo, resources, action="add", teams=teams
+            repo, resources, action="add", teams=teams,  pull_request=pull_request
         )
         return self.update_access_control(org, [repository_resource_access])
 
