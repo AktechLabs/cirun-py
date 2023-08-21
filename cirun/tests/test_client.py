@@ -4,7 +4,7 @@ from cirun import Cirun
 
 
 def test_raise_error_when_key_not_set():
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         Cirun()
 
 
