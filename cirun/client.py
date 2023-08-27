@@ -83,6 +83,7 @@ class Cirun:
     def _get_github_repo_id(self, owner, repo):
         url = f"{GITHUB_API}/repos/{owner}/{repo}"
         response = requests.get(url)
+        response.raise_for_status()
         response_json = response.json()
         return response_json["id"]
 
