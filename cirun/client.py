@@ -114,6 +114,9 @@ class Cirun:
             "repository_resource_access": repository_resource_access
         }
         response = self._put("access-control", json=json)
+        if response.status_code not in [200, 201]:
+            _print_error(response)
+        response.raise_for_status()
         return response
 
     def get_access_control(self, org):
@@ -127,13 +130,13 @@ class Cirun:
             resources,
             action="add",
             teams=None,
-            pull_request=True,
+            policy_args=None,
     ):
         repository_resource_access = {
             "repository": repo,
             "resources": resources,
             "action": action,
-            "pull_request": pull_request
+            "policy_args": policy_args
         }
         if teams:
             repository_resource_access = {
@@ -142,18 +145,18 @@ class Cirun:
             }
         return repository_resource_access
 
-    def remove_repo_from_resources(self, org, repo, resources, teams=None, pull_request=True):
+    def remove_repo_from_resources(self, org, repo, resources, teams=None, policy_args=None):
         """
         Removes the access to the resource for the repository.
         """
         repository_resource_access = self._create_access_control_repo_resource_data(
-            repo, resources, action="remove", teams=teams, pull_request=pull_request
+            repo, resources, action="remove", teams=teams, policy_args=policy_args
         )
         return self.update_access_control(org, [repository_resource_access])
 
-    def add_repo_to_resources(self, org, repo, resources, teams=None, pull_request=True):
+    def add_repo_to_resources(self, org, repo, resources, teams=None, policy_args=None):
         repository_resource_access = self._create_access_control_repo_resource_data(
-            repo, resources, action="add", teams=teams,  pull_request=pull_request
+            repo, resources, action="add", teams=teams,  policy_args=policy_args
         )
         return self.update_access_control(org, [repository_resource_access])
 
