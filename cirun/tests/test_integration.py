@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import requests
 
 from cirun import Cirun
 
@@ -14,16 +15,18 @@ def set_api_key():
 
 def test_access_control_add_repo_to_resource_401(set_api_key):
     cirun = Cirun()
-    response = cirun.add_repo_to_resources("cirun", "cirun-py", resources=["cirun-runner-1"])
-    assert response.status_code == 401
-    assert response.json() == {"message": MSG_401}
+    with pytest.raises(requests.exceptions.HTTPError) as exc:
+        cirun.add_repo_to_resources("cirun", "cirun-py", resources=["cirun-runner-1"])
+    assert exc.value.response.status_code == 401
+    assert exc.value.response.json() == {'message': MSG_401}
 
 
 def test_access_control_remove_repo_from_resource_401(set_api_key):
     cirun = Cirun()
-    response = cirun.add_repo_to_resources("cirun", "cirun-py", resources=["cirun-runner-1"])
-    assert response.status_code == 401
-    assert response.json() == {"message": MSG_401}
+    with pytest.raises(requests.exceptions.HTTPError) as exc:
+        cirun.remove_repo_from_resources("cirun", "cirun-py", resources=["cirun-runner-1"])
+    assert exc.value.response.status_code == 401
+    assert exc.value.response.json() == {'message': MSG_401}
 
 
 def test_get_repo_resources(set_api_key):
