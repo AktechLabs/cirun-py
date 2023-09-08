@@ -1,4 +1,5 @@
 import os
+import typing
 
 import requests
 
@@ -71,7 +72,7 @@ class Cirun:
         if response.status_code not in [200, 201]:
             if print_error:
                 _print_error(response)
-            return response.json()
+            response.raise_for_status()
         response = response.json()
         if gh_response_json:
             response = {
@@ -103,6 +104,7 @@ class Cirun:
         response = requests.put(url, headers=headers)
         if response.status_code not in [204, 304]:
             _print_error(response)
+            response.raise_for_status()
         response = {
             "message": f"GitHub Installation done",
             "status_code": response.status_code
