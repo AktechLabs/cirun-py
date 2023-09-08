@@ -1,6 +1,7 @@
 .. _api:
 
-Cirun
+API Reference
 --------------
 
 .. autoclass:: cirun.Cirun
+   :members:

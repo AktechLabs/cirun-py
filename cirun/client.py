@@ -15,7 +15,11 @@ class CirunAPIException(Exception):
 
 
 class Cirun:
+    """Cirun Client to interact to cirun's API"""
     def __init__(self, token=None):
+        """
+        :param token: cirun's API client token
+        """
         self.token = token
         self._get_credentials()
         self.api_endpoint = os.environ.get('CIRUN_API_ENDPOINT', API_ENDPOINT)
@@ -60,7 +64,22 @@ class Cirun:
             print_error=False,
             installation_id=None
     ):
-        """Activate repository for Cirun"""
+        """
+        Activate repository for Cirun
+
+        Parameters
+        ----------
+        name: str
+            Repository name
+        active: bool
+            ``True`` to activate, ``False`` otherwise. Default is ``True``
+        installation_id: int
+            Cirun App's Installation ID for the Organization
+
+        Returns
+        -------
+        dict
+        """
         data = {
             "repository": name,
             "active": active
@@ -151,6 +170,24 @@ class Cirun:
     def remove_repo_from_resources(self, org, repo, resources, teams=None, policy_args=None):
         """
         Removes the access to the resource for the repository.
+
+        Parameters
+        ----------
+        org: str
+            GitHub Organization
+        repo: str
+            GitHub Repository
+        resources: List[str]
+            List of resources
+        teams: List[str]
+            List of teams
+        policy_args: Optional[Dict[str, Any]]
+            Policy arguments, this is a dictionary of key values, currently the only
+            supported argument is  ``{"pull_request": True}`` or ``{"pull_request": False}``
+
+        Returns
+        -------
+        requests.Response
         """
         repository_resource_access = self._create_access_control_repo_resource_data(
             repo, resources, action="remove", teams=teams, policy_args=policy_args
@@ -158,6 +195,27 @@ class Cirun:
         return self.update_access_control(org, [repository_resource_access])
 
     def add_repo_to_resources(self, org, repo, resources, teams=None, policy_args=None):
+        """
+        Grants access to the resource for the repository
+
+        Parameters
+        ----------
+        org: str
+            GitHub Organization
+        repo: str
+            GitHub Repository
+        resources: List[str]
+            List of resources
+        teams: List[str]
+            List of teams
+        policy_args: Optional[Dict[str, Any]]
+            Policy arguments, this is a dictionary of key values, currently the only
+            supported argument is  ``{"pull_request": True}`` or ``{"pull_request": False}``
+
+        Returns
+        -------
+        requests.Response
+        """
         repository_resource_access = self._create_access_control_repo_resource_data(
             repo, resources, action="add", teams=teams,  policy_args=policy_args
         )
@@ -189,7 +247,22 @@ class Cirun:
         return response.json()
 
     def cloud_connect(self, name, credentials, print_error=False):
-        """Connect a cloud provider to cirun"""
+        """
+        Connect a cloud provider to cirun.
+
+        Parameters
+        ----------
+        name: str
+            Name of cloud provider
+        credentials: str
+            Cloud Credentials
+
+        Returns
+        -------
+        dict:
+            Response json
+        """
+
         data = {
             "cloud": name,
             "credentials": credentials

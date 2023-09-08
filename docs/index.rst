@@ -1,23 +1,34 @@
-Welcome to PyDSA's documentation!
-=================================
+Cirun's Python Client documentation!
+====================================
 
-PyDSA is a Python Data Structure and Algorithms Library (α-mode).
-It is currently in it's initial phase of development.
+Cirun's API can be accessed via this client.
+
+Installation
+============
+
+.. code-block:: bash
+
+    pip install cirun
+
+
+or via `conda-forge`
+
+.. code-block:: bash
+
+    conda install -c conda-forge cirun
+
 
 .. toctree::
    :maxdepth: 2
 
    api
 
-
 Contributing
 ============
 
-There are multiple ways you can contibute to Pydsa
+There are multiple ways you can contibute to cirun client
 
 * Add missing documentation.
-* Add/improve efficiency of algorithms or Data structures.
 * Report bugs.
-* Request/Submit new algorithms.
 
 Use github's Pull request/issues feature for all contributions.
