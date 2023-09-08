@@ -1,20 +1,23 @@
-.. cirun-py documentation master file, created by
-   sphinx-quickstart on Fri Sep  8 18:59:33 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to PyDSA's documentation!
+=================================
 
-Welcome to Cirun's Python Client Documentation!
-===============================================
+PyDSA is a Python Data Structure and Algorithms Library (α-mode).
+It is currently in it's initial phase of development.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+   api
 
 
+Contributing
+============
 
-Indices and tables
-==================
+There are multiple ways you can contibute to Pydsa
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+* Add missing documentation.
+* Add/improve efficiency of algorithms or Data structures.
+* Report bugs.
+* Request/Submit new algorithms.
+
+Use github's Pull request/issues feature for all contributions.
