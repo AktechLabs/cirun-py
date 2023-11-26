@@ -152,6 +152,9 @@ class Cirun:
             resources,
             action="add",
             teams=None,
+            roles=None,
+            users=None,
+            users_from_json=None,
             policy_args=None,
     ):
         repository_resource_access = {
@@ -160,14 +163,16 @@ class Cirun:
             "action": action,
             "policy_args": policy_args
         }
-        if teams:
-            repository_resource_access = {
-                **repository_resource_access,
-                "teams": teams
-            }
+        repository_resource_access = {
+            **repository_resource_access,
+            "teams": teams,
+            "users": users,
+            "roles": roles,
+            "users_from_json": users_from_json,
+        }
         return repository_resource_access
 
-    def remove_repo_from_resources(self, org, repo, resources, teams=None, policy_args=None):
+    def remove_repo_from_resources(self, org, repo, resources):
         """
         Removes the access to the resource for the repository.
 
@@ -179,22 +184,27 @@ class Cirun:
             GitHub Repository
         resources: List[str]
             List of resources
-        teams: List[str]
-            List of teams
-        policy_args: Optional[Dict[str, Any]]
-            Policy arguments, this is a dictionary of key values, currently the only
-            supported argument is  ``{"pull_request": True}`` or ``{"pull_request": False}``
 
         Returns
         -------
         requests.Response
         """
         repository_resource_access = self._create_access_control_repo_resource_data(
-            repo, resources, action="remove", teams=teams, policy_args=policy_args
+            repo, resources, action="remove",
         )
         return self.update_access_control(org, [repository_resource_access])
 
-    def add_repo_to_resources(self, org, repo, resources, teams=None, policy_args=None):
+    def add_repo_to_resources(
+            self,
+            org,
+            repo,
+            resources,
+            teams=None,
+            roles=None,
+            users=None,
+            users_from_json=None,
+            policy_args=None,
+    ):
         """
         Grants access to the resource for the repository
 
@@ -208,6 +218,12 @@ class Cirun:
             List of resources
         teams: List[str]
             List of teams
+        roles: List[str]
+            List of roles
+        users: List[str]
+            List of users
+        users_from_json: List[str]
+            List of users from a json url
         policy_args: Optional[Dict[str, Any]]
             Policy arguments, this is a dictionary of key values, currently the only
             supported argument is  ``{"pull_request": True}`` or ``{"pull_request": False}``
@@ -217,7 +233,8 @@ class Cirun:
         requests.Response
         """
         repository_resource_access = self._create_access_control_repo_resource_data(
-            repo, resources, action="add", teams=teams,  policy_args=policy_args
+            repo, resources, action="add", teams=teams, roles=roles,
+            users=users, users_from_json=users_from_json, policy_args=policy_args
         )
         return self.update_access_control(org, [repository_resource_access])
 
