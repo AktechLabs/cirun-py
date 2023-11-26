@@ -3,3 +3,4 @@
 # SPDX-License-Identifier: MIT
 
 from .client import Cirun
+from .__about__ import __version__

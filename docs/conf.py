@@ -2,14 +2,15 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-
+from datetime import datetime
+import cirun
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'cirun-py'
-copyright = '2023, Amit Kumar'
+copyright = f'{datetime.utcnow().year}, Aktech Labs'
 author = 'Amit Kumar'
-release = '0.27'
+release = cirun.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
