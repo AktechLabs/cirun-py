@@ -28,6 +28,10 @@ jobs:
         run: |
           cd docs/
           make html
+      - name: Copy CNAME to html dir
+        run: |
+          ls
+          cp CNAME docs/_build/html/CNAME
       - name: Run ghp-import
         run: |
           ghp-import -n -p -f docs/_build/html
