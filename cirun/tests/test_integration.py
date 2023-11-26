@@ -16,7 +16,15 @@ def set_api_key():
 def test_access_control_add_repo_to_resource_401(set_api_key):
     cirun = Cirun()
     with pytest.raises(requests.exceptions.HTTPError) as exc:
-        cirun.add_repo_to_resources("cirun", "cirun-py", resources=["cirun-runner-1"])
+        cirun.add_repo_to_resources(
+            "cirun", "cirun-py",
+            teams=["team1", "team2", "team3"],
+            roles=["role1", "role2", "role3"],
+            users=["user1", "user2", "user3"],
+            users_from_json="https://cirun.io/users.json",
+            resources=["cirun-runner-1"]
+
+        )
     assert exc.value.response.status_code == 401
     assert exc.value.response.json() == {'message': MSG_401}
 
