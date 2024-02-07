@@ -1,7 +1,7 @@
 # Cirun Python Client and CLI
 
-[![PyPI - Version](https://img.shields.io/pypi/v/cirun.svg)](https://pypi.org/project/cirun)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cirun.svg)](https://pypi.org/project/cirun)
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/cirun.svg)](https://anaconda.org/conda-forge/cirun) [![PyPI - Version](https://img.shields.io/pypi/v/cirun.svg)](https://pypi.org/project/cirun)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cirun.svg)](https://pypi.org/project/cirun) [![Conda Recipe](https://img.shields.io/badge/recipe-cirun-green.svg)](https://anaconda.org/conda-forge/cirun) 
 
 -----
 
