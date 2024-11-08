@@ -64,7 +64,12 @@ class Cirun:
             installation_id=None
     ):
         """
-        Activate repository for Cirun
+        Activate or deactivate a repository for Cirun.
+
+        This method allows you to enable or disable a repository's integration with Cirun.
+        When activating a repository, it can also handle the installation of the Cirun
+        GitHub App if an `installation_id` is provided and `GITHUB_TOKEN` environment
+        variable is set.
 
         Parameters
         ----------
@@ -173,7 +178,8 @@ class Cirun:
 
     def remove_repo_from_resources(self, org, repo, resources):
         """
-        Removes the access to the resource for the repository.
+        Creates a Pull request in the `<org>/.cirun` repository updating the `.access.yml`
+        to revoke access to specified resources for a repository within an organization.
 
         Parameters
         ----------
@@ -205,31 +211,40 @@ class Cirun:
             policy_args=None,
     ):
         """
-        Grants access to the resource for the repository
+        Creates a Pull request in the `<org>/.cirun` repository updating the `.access.yml`
+        to grant access to specified resources for a repository within an organization,
+        with constraints for teams, roles, users, users_from_json, policy_args.
 
         Parameters
         ----------
-        org: str
-            GitHub Organization
-        repo: str
-            GitHub Repository
-        resources: List[str]
-            List of resources
-        teams: List[str]
-            List of teams
-        roles: List[str]
-            List of roles
-        users: List[str]
-            List of users
-        users_from_json: List[str]
-            List of users from a json url
-        policy_args: Optional[Dict[str, Any]]
-            Policy arguments, this is a dictionary of key values, currently the only
-            supported argument is  ``{"pull_request": True}`` or ``{"pull_request": False}``
+        org : str
+            The GitHub organization name.
+        repo : str
+            The name of the repository to which resources are to be added.
+        resources : list of str
+            A list of resource identifiers to grant access to.
+        teams : list of str, optional
+            Teams to grant access to the resources.
+        roles : list of str, optional
+            Roles to grant access to the resource, i.e. users with specified roles
+            will have access to the resources.
+        users : list of str, optional
+            Users to grant access to the resources.
+        users_from_json : str, optional
+            Users specified via a JSON URL
+        policy_args : dict, optional
+            Additional policy arguments, such as `{"pull_request": True}` to enforce
+            specific policies on access.
 
         Returns
         -------
         requests.Response
+            The response object from the API after attempting to add access.
+
+        Raises
+        ------
+        CirunAPIException
+            If the API call fails with an error status code.
         """
         repository_resource_access = self._create_access_control_repo_resource_data(
             repo, resources, action="add", teams=teams, roles=roles,
@@ -243,6 +258,30 @@ class Cirun:
                 return policy['id']
 
     def get_repo_resources(self, org, repo):
+        """
+        Retrieve the list of resources that a repository has access to within an organization.
+
+        This method parses the access control configuration to determine which resources
+        the specified repository is permitted to access based on its assigned policies.
+
+        Parameters
+        ----------
+        org : str
+            The GitHub organization name.
+        repo : str
+            The repository name whose accessible resources are to be retrieved.
+
+        Returns
+        -------
+        list of str or None
+            A list of resource identifiers that the repository has access to, or `None`
+            if access control configuration is not found.
+
+        Raises
+        ------
+        KeyError
+            If the repository does not have an associated policy in the access control configuration.
+        """
         access_control = self.get_access_control(org)
         if not access_control:
             return
@@ -255,7 +294,28 @@ class Cirun:
         return repo_resources
 
     def clouds(self, print_error=False):
-        """Returns all the connected cloud"""
+        """
+        Retrieve all cloud providers connected to Cirun.
+
+        This method fetches the list of cloud providers that have been integrated
+        with Cirun (have credentials added to cirun).
+
+        Parameters
+        ----------
+        print_error : bool, optional
+            If set to True, errors encountered during the API call will be printed.
+            Default is False.
+
+        Returns
+        -------
+        dict
+            A dictionary containing information about connected cloud providers.
+
+        Raises
+        ------
+        CirunAPIException
+            If the API call fails and `print_error` is False.
+        """
         response = self._get("cloud-connect")
         if response.status_code not in [200, 201]:
             if print_error:
@@ -264,7 +324,11 @@ class Cirun:
 
     def cloud_connect(self, name, credentials, print_error=False):
         """
-        Connect a cloud provider to cirun.
+        Connect a new cloud provider to Cirun.
+
+        This method integrates a specified cloud provider with Cirun by providing the
+        necessary credentials. Once connected, the cloud provider can be used to create
+        GitHub Actions runners.
 
         Parameters
         ----------
@@ -277,6 +341,11 @@ class Cirun:
         -------
         dict:
             Response json
+
+        Raises
+        ------
+        CirunAPIException
+            If the API call fails and `print_error` is False.
         """
 
         data = {

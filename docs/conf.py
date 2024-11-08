@@ -8,7 +8,7 @@ import cirun
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'cirun-py'
-copyright = f'{datetime.utcnow().year}, Aktech Labs'
+copyright = f'{datetime.utcnow().year}, Cirun Labs'
 author = 'Amit Kumar'
 release = cirun.__version__
 
@@ -33,3 +33,7 @@ source_suffix = [".rst", ".md"]
 
 html_theme = "furo"
 html_static_path = ['_static']
+html_theme_options = {
+    "light_logo": "cirun-logo-light.png",
+    "dark_logo": "cirun-logo-dark.jpg",
+}
