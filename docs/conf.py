@@ -7,7 +7,7 @@ import cirun
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'cirun-py'
+project = 'cirun'
 copyright = f'{datetime.utcnow().year}, Cirun Labs'
 author = 'Amit Kumar'
 release = cirun.__version__
