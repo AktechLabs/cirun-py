@@ -1,119 +1,167 @@
-# Cirun Python Client and CLI
+# cirun-py
 
-[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/cirun.svg)](https://anaconda.org/conda-forge/cirun) [![PyPI - Version](https://img.shields.io/pypi/v/cirun.svg)](https://pypi.org/project/cirun)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cirun.svg)](https://pypi.org/project/cirun) [![Conda Recipe](https://img.shields.io/badge/recipe-cirun-green.svg)](https://anaconda.org/conda-forge/cirun) 
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" alt="Cirun logo" height="150" srcset="https://raw.githubusercontent.com/AktechLabs/cirun-docs/refs/heads/main/static/img/cirun-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" alt="Cirun logo" height="150" srcset="https://raw.githubusercontent.com/AktechLabs/cirun-docs/refs/heads/main/static/img/cirun-logo-light.svg">
+    <img alt="Cirun logo" height="150" src="https://raw.githubusercontent.com/AktechLabs/cirun-docs/refs/heads/main/static/img/cirun-logo-light.svg">
+  </picture>
 
------
+  <h3>Python Client and CLI for the Cirun Platform</h3>
 
-**Table of Contents**
+  [![PyPI - Version](https://img.shields.io/pypi/v/cirun.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/cirun)
+  [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/cirun.svg?style=for-the-badge&logo=anaconda&logoColor=white)](https://anaconda.org/conda-forge/cirun)
+  [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cirun.svg?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/cirun)
+  [![Conda Recipe](https://img.shields.io/badge/recipe-cirun-green.svg?style=for-the-badge&logo=conda-forge&logoColor=white)](https://anaconda.org/conda-forge/cirun)
+  [![License](https://img.shields.io/badge/license-MIT-%23yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  [![Documentation](https://img.shields.io/badge/docs-cirun-%230075A8.svg?style=for-the-badge)](https://docs.cirun.io)
+</div>
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [License](#license)
+## 🚀 Overview
 
-## Installation
+**cirun-py** is a Python client and command-line interface for the [Cirun platform](https://cirun.io), enabling seamless management of your CI/CD infrastructure. Whether you're managing repositories, or connecting cloud providers, cirun-py makes it simple with both a programmatic API and intuitive CLI.
 
-```console
+## ✨ Features
+
+- **Dual Interface**: Use as both a Python client library and CLI tool
+- **Repository Management**: Easily activate, deactivate, and list repositories
+- **Cloud Provider Integration**: Connect AWS, Azure, GCP, and other cloud providers
+- **Elegant API**: Clean, Pythonic interface for all Cirun operations
+- **Rich Output Formatting**: Beautiful CLI output for better readability
+
+## 📦 Installation
+
+### Using pip (Recommended)
+
+```bash
 pip install cirun
 ```
 
-or via `conda-forge`
+### Using conda
 
-```console
+```bash
 conda install -c conda-forge cirun
 ```
 
-## Usage
+### From Source
 
-**cirun-py** can be used as a CLI as well as a Python client programmatically.
+```bash
+git clone https://github.com/cirun-io/cirun-py
+cd cirun-py
+pip install -e .
+```
 
-- Create an API key from the Cirun Dashboard https://cirun.io/admin/api
-- Set that API Key as an environment variable named `CIRUN_API_KEY`
+## 🏃‍♂️ Quick Start
 
-```console
+1. **Get your API key** from the [Cirun dashboard](https://cirun.io/admin/api)
+2. **Set your API key as an environment variable**:
+
+```bash
 export CIRUN_API_KEY=<your-api-key>
 ```
 
-### CLI
+3. **Start using cirun-py!**
 
-- List active repositories for Cirun
+## 🧰 Usage
+
+### CLI Examples
+
+#### Repository Management
 
 ```bash
-$ cirun repo list
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
-{
-  "repos": [
-    {
-      "repository": "aktech/cirun-openstack-example",
-      "active": true,
-      "private": false
-    },
-    {
-      "repository": "aktechlabs/cirun-demo",
-      "active": true,
-      "private": true
-    }
-  ]
-}
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
+# List active repositories
+cirun repo list
+
+# Activate a repository
+cirun repo add username/repo-name
+
+# Deactivate a repository
+cirun repo remove username/repo-name
 ```
 
-- Active (add) a repository
+#### Cloud Provider Integration
 
 ```bash
-$ cirun repo add aktech/sympy
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
-{
-  "name": "aktech/sympy",
-  "active": true
-}
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
-```
-
-- Deactivate (remove) a repository
-
-```bash
-$ cirun repo remove aktech/sympy
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
-{
-  "name": "aktech/sympy",
-  "active": false
-}
-──────────────────────────────────────────────────────────────────────────────────────────────────────────
-```
-
-- Connect cloud provider with Cirun
-
-```bash
+# Connect AWS
 cirun cloud connect aws --access-key AKIXXXXXXXXX --secret-key KFCF3yi+df0n12345678AMASDFGHJ
 
+# Connect Azure
 cirun cloud connect azure \
   --subscription-id 31184337-0346-4782-ae59-eb185fd0cfa1 \
   --tenant-id a66e466d-698b-4a91-b9e3-949f9cc04f11 \
   --client-id 340d01fc-ba24-43ee-844e-d364899d29e7 \
   --client-secret KFCF3yi+df0cirunIsAwesomeIsntIt?n1DFGHJ
 
+# Connect GCP
 cirun cloud connect gcp --key-file /path/to/service-account-key.json
 ```
 
-### Client
+### Python Client Examples
 
 ```python
 from cirun import Cirun
-# Create cirun client object
-# Pass the token or set `CIRUN_API_KEY` environment variable
-c = Cirun(token='cirun-4cabcdbf-275c-4500-890d-712340663ddc')
 
-# List repositories
-c.get_repos()
+# Initialize client (pass token or set CIRUN_API_KEY environment variable)
+cirun_client = Cirun(token='cirun-4cabcdbf-275c-4500-890d-712340663ddc')
 
-# Active (add) a repository
-c.set_repo('aktech/sympy', active=True)
+# List all repositories
+repos = cirun_client.get_repos()
+print(repos)
 
-# Deactivate (remove) a repository
-c.set_repo('aktech/sympy', active=False)
+# Activate a repository
+cirun_client.set_repo('username/repo-name', active=True)
+
+# Deactivate a repository
+cirun_client.set_repo('username/repo-name', active=False)
 ```
 
-## License
+## ⚙️ Configuration
 
-`cirun` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CIRUN_API_KEY` | API key for authentication | (Required) |
+| `CIRUN_API_URL` | Base URL for Cirun API | https://api.cirun.io/api/v1 |
+
+## 📚 Documentation
+
+For comprehensive documentation, visit:
+- [Cirun Documentation](https://docs.cirun.io/)
+- [Python Client API Reference](https://docs.cirun.io/python)
+- [CLI Command Reference](https://docs.cirun.io/cli)
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+- **Authentication Errors**: Ensure your API key is correctly set
+- **Connection Issues**: Check your network connection to api.cirun.io
+- **Permission Problems**: Verify you have the required permissions for the operation
+
+## 💬 Support
+
+Get help from our team and community:
+
+- **Slack**: [Join our community](https://slack.cirun.io/)
+- **Email**: support@cirun.io
+- **GitHub Issues**: [Report bugs](https://github.com/cirun-io/cirun-py/issues)
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 🔄 Related Projects
+
+- [cirun-agent](https://github.com/cirun-io/cirun-agent): Rust agent for on-premise runner provisioning
+- [cirun-docs](https://github.com/cirun-io/cirun-docs): Documentation for the Cirun platform
