@@ -139,14 +139,6 @@ For comprehensive documentation, visit:
 - **Connection Issues**: Check your network connection to api.cirun.io
 - **Permission Problems**: Verify you have the required permissions for the operation
 
-### Debug Mode
-
-For detailed logs:
-
-```bash
-cirun --debug repo list
-```
-
 ## 💬 Support
 
 Get help from our team and community:
