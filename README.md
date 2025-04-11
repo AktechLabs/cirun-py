@@ -10,8 +10,8 @@
   <h3>Python Client and CLI for the Cirun Platform</h3>
 
   [![PyPI - Version](https://img.shields.io/pypi/v/cirun.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/cirun)
-  [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cirun.svg?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/cirun)
   [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/cirun.svg?style=for-the-badge&logo=anaconda&logoColor=white)](https://anaconda.org/conda-forge/cirun)
+  [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cirun.svg?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/cirun)
   [![Conda Recipe](https://img.shields.io/badge/recipe-cirun-green.svg?style=for-the-badge&logo=conda-forge&logoColor=white)](https://anaconda.org/conda-forge/cirun)
   [![License](https://img.shields.io/badge/license-MIT-%23yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
   [![Documentation](https://img.shields.io/badge/docs-cirun-%230075A8.svg?style=for-the-badge)](https://docs.cirun.io)
