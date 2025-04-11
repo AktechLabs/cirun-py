@@ -113,12 +113,6 @@ cirun_client.set_repo('username/repo-name', active=True)
 
 # Deactivate a repository
 cirun_client.set_repo('username/repo-name', active=False)
-
-# Connect cloud provider
-cirun_client.connect_aws(
-    access_key='AKIXXXXXXXXX',
-    secret_key='KFCF3yi+df0n12345678AMASDFGHJ'
-)
 ```
 
 ## ⚙️ Configuration
