@@ -23,13 +23,27 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "hatchling",
   "rich",
   "typer",
-  "hatch",
   "requests",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+]
+docs = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "furo",
+  "ghp-import",
+]
+build = [
+  "hatch",
+  "hatchling",
+]
 
 [project.urls]
 Documentation = "https://github.com/aktechlabs/cirun-py#readme"
