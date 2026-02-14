@@ -82,9 +82,6 @@ cirun repo remove username/repo-name
 #### Cloud Provider Integration
 
 ```bash
-# Connect AWS
-cirun cloud connect aws --access-key AKIXXXXXXXXX --secret-key KFCF3yi+df0n12345678AMASDFGHJ
-
 # Connect Azure
 cirun cloud connect azure \
   --subscription-id 31184337-0346-4782-ae59-eb185fd0cfa1 \
@@ -96,8 +93,19 @@ cirun cloud connect azure \
 # (requires Azure CLI to be installed and logged in)
 cirun cloud create azure --auto-connect
 
+# Connect AWS
+cirun cloud connect aws --access-key AKIXXXXXXXXX --secret-key KFCF3yi+df0n12345678AMASDFGHJ
+
+# Or create AWS IAM user credentials automatically and connect in one step
+# (requires AWS CLI to be installed and configured)
+cirun cloud create aws --auto-connect
+
 # Connect GCP
 cirun cloud connect gcp --key-file /path/to/service-account-key.json
+
+# Or create GCP service account credentials automatically and connect in one step
+# (requires gcloud CLI to be installed and logged in)
+cirun cloud create gcp --auto-connect
 ```
 
 ### Python Client Examples
