@@ -5,7 +5,7 @@ import requests
 
 from cirun import Cirun
 
-MSG_401 = "This API Key is expired or non-existent."
+MSG_401 = "Invalid or inactive API token"
 
 
 @pytest.fixture
