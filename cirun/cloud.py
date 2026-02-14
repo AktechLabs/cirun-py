@@ -52,8 +52,8 @@ def aws(
     _connect_cloud(name="aws", credentials=credentials)
 
 
-@cloud_connect.command()
-def azure(
+@cloud_connect.command(name="azure")
+def connect_azure(
         subscription_id=option("--subscription-id", help="Azure subscription_id"),
         tenant_id=option("--tenant-id", help="Azure tenant_id"),
         client_id=option("--client-id", help="Azure client_id"),
@@ -117,8 +117,8 @@ def oracle(
     _connect_cloud(name="oracle", credentials=credentials)
 
 
-@cloud_create.command()
-def azure(
+@cloud_create.command(name="azure")
+def create_azure(
         name: str = typer.Option(
             None,
             "--name",
@@ -131,10 +131,14 @@ def azure(
         ),
 ):
     """Create Azure Service Principal credentials for Cirun"""
-    import time
+    import os
 
     console = Console()
     error_console = Console(stderr=True, style="bold red")
+
+    if auto_connect and not os.environ.get("CIRUN_API_KEY"):
+        error_console.print("Error: CIRUN_API_KEY environment variable is required for --auto-connect")
+        raise typer.Exit(code=1)
 
     # Check if Azure CLI is installed
     try:
@@ -176,7 +180,14 @@ def azure(
 
     # Generate service principal name if not provided
     if not name:
-        name = f"cirun-{int(time.time())}"
+        from datetime import datetime, timezone
+        name = f"cirun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+
+    # Confirm before creating
+    typer.confirm(
+        f"Create service principal '{name}' with contributor role on subscription '{subscription_id}'?",
+        abort=True,
+    )
 
     # Create service principal
     console.print(f"[bold blue]Creating service principal '[bold green]{name}[/bold green]'...[/bold blue]")
