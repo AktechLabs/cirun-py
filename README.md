@@ -92,6 +92,10 @@ cirun cloud connect azure \
   --client-id 340d01fc-ba24-43ee-844e-d364899d29e7 \
   --client-secret KFCF3yi+df0cirunIsAwesomeIsntIt?n1DFGHJ
 
+# Or create Azure credentials automatically and connect in one step
+# (requires Azure CLI to be installed and logged in)
+cirun cloud create azure --auto-connect
+
 # Connect GCP
 cirun cloud connect gcp --key-file /path/to/service-account-key.json
 ```
@@ -122,7 +126,7 @@ cirun_client.set_repo('username/repo-name', active=False)
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CIRUN_API_KEY` | API key for authentication | (Required) |
-| `CIRUN_API_URL` | Base URL for Cirun API | https://api.cirun.io/api/v1 |
+| `CIRUN_API_ENDPOINT` | Base URL for Cirun API | https://api.cirun.io/api/v1 |
 
 ## 📚 Documentation
 
