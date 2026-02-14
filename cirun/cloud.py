@@ -1,5 +1,6 @@
 import json
 import subprocess
+import time
 
 import typer
 from rich.console import Console
@@ -239,6 +240,197 @@ def create_azure(
             "client_secret": client_secret,
         }
         _connect_cloud(name="azure", credentials=credentials)
+
+
+@cloud_create.command(name="gcp")
+def create_gcp(
+        name: str = typer.Option(
+            None,
+            "--name",
+            help="Name for the service account (optional, auto-generated if not provided)"
+        ),
+        role: str = typer.Option(
+            "roles/compute.admin",
+            "--role",
+            help="IAM role to grant the service account"
+        ),
+        auto_connect: bool = typer.Option(
+            False,
+            "--auto-connect",
+            help="Automatically connect the created credentials to Cirun"
+        ),
+):
+    """Create GCP Service Account credentials for Cirun"""
+    import os
+    import tempfile
+
+    console = Console()
+    error_console = Console(stderr=True, style="bold red")
+
+    if auto_connect and not os.environ.get("CIRUN_API_KEY"):
+        error_console.print("Error: CIRUN_API_KEY environment variable is required for --auto-connect")
+        raise typer.Exit(code=1)
+
+    # Check if gcloud CLI is installed
+    try:
+        subprocess.run(
+            ["gcloud", "--version"],
+            capture_output=True,
+            check=True
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        error_console.print("Error: gcloud CLI is not installed or not found in PATH")
+        error_console.print("Install it from: https://cloud.google.com/sdk/docs/install")
+        raise typer.Exit(code=1)
+
+    # Get current project
+    console.print("[bold blue]Checking gcloud CLI configuration...[/bold blue]")
+    try:
+        result = subprocess.run(
+            ["gcloud", "config", "get-value", "project"],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+        project_id = result.stdout.strip()
+    except subprocess.CalledProcessError:
+        error_console.print("Error: No active GCP project configured")
+        error_console.print("Please run: gcloud config set project PROJECT_ID")
+        raise typer.Exit(code=1)
+
+    if not project_id or project_id == "(unset)":
+        error_console.print("Error: No active GCP project configured")
+        error_console.print("Please run: gcloud config set project PROJECT_ID")
+        raise typer.Exit(code=1)
+
+    # Check authentication
+    try:
+        result = subprocess.run(
+            ["gcloud", "auth", "list", "--filter=status:ACTIVE", "--format=value(account)"],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+        active_account = result.stdout.strip()
+    except subprocess.CalledProcessError:
+        active_account = None
+
+    if not active_account:
+        error_console.print("Error: Not logged in to gcloud CLI")
+        error_console.print("Please run: gcloud auth login")
+        raise typer.Exit(code=1)
+
+    # Display account details
+    console.print("\n[bold green]GCP Account Details:[/bold green]")
+    console.print(f"  Account:    [bold]{active_account}[/bold]")
+    console.print(f"  Project ID: [bold]{project_id}[/bold]")
+    console.print("")
+
+    # Generate service account name if not provided
+    if not name:
+        from datetime import datetime, timezone
+        name = f"cirun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+
+    sa_email = f"{name}@{project_id}.iam.gserviceaccount.com"
+
+    # Confirm before creating
+    typer.confirm(
+        f"Create service account '{name}' with {role} on project '{project_id}'?",
+        abort=True,
+    )
+
+    # Create service account
+    console.print(f"[bold blue]Creating service account '[bold green]{name}[/bold green]'...[/bold blue]")
+    try:
+        subprocess.run(
+            [
+                "gcloud", "iam", "service-accounts", "create", name,
+                "--display-name", f"Cirun service account ({name})",
+                "--project", project_id,
+            ],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        error_console.print(f"Error creating service account: {e.stderr}")
+        raise typer.Exit(code=1)
+
+    # Wait for service account to be available
+    for _ in range(10):
+        result = subprocess.run(
+            ["gcloud", "iam", "service-accounts", "describe", sa_email,
+             "--project", project_id],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            break
+        time.sleep(2)
+    else:
+        error_console.print("Service account was not ready in time.")
+        raise typer.Exit(code=1)
+
+    # Grant IAM role
+    console.print(f"[bold blue]Granting [bold green]{role}[/bold green] role...[/bold blue]")
+    try:
+        subprocess.run(
+            [
+                "gcloud", "projects", "add-iam-policy-binding", project_id,
+                "--member", f"serviceAccount:{sa_email}",
+                "--role", role,
+                "--format", "json",
+            ],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        error_console.print(f"Error granting IAM role: {e.stderr}")
+        raise typer.Exit(code=1)
+
+    # Create key file
+    console.print("[bold blue]Creating service account key...[/bold blue]")
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+            key_file_path = tmp.name
+
+        subprocess.run(
+            [
+                "gcloud", "iam", "service-accounts", "keys", "create", key_file_path,
+                "--iam-account", sa_email,
+            ],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+
+        with open(key_file_path, "r") as f:
+            credentials = json.loads(f.read())
+    except subprocess.CalledProcessError as e:
+        error_console.print(f"Error creating service account key: {e.stderr}")
+        raise typer.Exit(code=1)
+    finally:
+        os.unlink(key_file_path)
+
+    # Display credentials
+    success_console = Console(style="bold green")
+    success_console.rule("[bold green]")
+    success_console.print("[bold green]✓[/bold green] Service account created successfully!")
+    success_console.print("")
+    success_console.print("[bold yellow]GCP Credentials for Cirun:[/bold yellow]")
+    success_console.print("")
+    success_console.print(f"  Project ID:      [bold]{credentials.get('project_id')}[/bold]")
+    success_console.print(f"  Client Email:    [bold]{credentials.get('client_email')}[/bold]")
+    success_console.print(f"  Client ID:       [bold]{credentials.get('client_id')}[/bold]")
+    success_console.print(f"  Private Key ID:  [bold]{credentials.get('private_key_id')}[/bold]")
+    success_console.print("")
+    success_console.print("[bold red]⚠️  The private key cannot be recovered if lost![/bold red]")
+    success_console.rule("[bold green]")
+
+    # Auto-connect if requested
+    if auto_connect:
+        console.print("\n[bold blue]Connecting credentials to Cirun...[/bold blue]")
+        _connect_cloud(name="gcp", credentials=credentials)
 
 
 def _connect_cloud(name, credentials):
