@@ -242,6 +242,149 @@ def create_azure(
         _connect_cloud(name="azure", credentials=credentials)
 
 
+@cloud_create.command(name="aws")
+def create_aws(
+        name: str = typer.Option(
+            None,
+            "--name",
+            help="Name for the IAM user (optional, auto-generated if not provided)"
+        ),
+        policy_arn: str = typer.Option(
+            "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+            "--policy-arn",
+            help="IAM policy ARN to attach to the user"
+        ),
+        auto_connect: bool = typer.Option(
+            False,
+            "--auto-connect",
+            help="Automatically connect the created credentials to Cirun"
+        ),
+):
+    """Create AWS IAM User credentials for Cirun"""
+    import os
+
+    console = Console()
+    error_console = Console(stderr=True, style="bold red")
+
+    if auto_connect and not os.environ.get("CIRUN_API_KEY"):
+        error_console.print("Error: CIRUN_API_KEY environment variable is required for --auto-connect")
+        raise typer.Exit(code=1)
+
+    # Check if AWS CLI is installed
+    try:
+        subprocess.run(
+            ["aws", "--version"],
+            capture_output=True,
+            check=True
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        error_console.print("Error: AWS CLI is not installed or not found in PATH")
+        error_console.print("Install it from: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")
+        raise typer.Exit(code=1)
+
+    # Check caller identity
+    console.print("[bold blue]Checking AWS CLI configuration...[/bold blue]")
+    try:
+        result = subprocess.run(
+            ["aws", "sts", "get-caller-identity", "--output", "json"],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+        caller_identity = json.loads(result.stdout)
+    except subprocess.CalledProcessError:
+        error_console.print("Error: Not authenticated with AWS CLI")
+        error_console.print("Please run: aws configure")
+        raise typer.Exit(code=1)
+
+    # Display account details
+    console.print("\n[bold green]AWS Account Details:[/bold green]")
+    console.print(f"  Account ID: [bold]{caller_identity.get('Account', 'N/A')}[/bold]")
+    console.print(f"  ARN:        [bold]{caller_identity.get('Arn', 'N/A')}[/bold]")
+    console.print(f"  User ID:    [bold]{caller_identity.get('UserId', 'N/A')}[/bold]")
+    console.print("")
+
+    # Generate IAM user name if not provided
+    if not name:
+        from datetime import datetime, timezone
+        name = f"cirun-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+
+    # Confirm before creating
+    typer.confirm(
+        f"Create IAM user '{name}' with policy '{policy_arn}'?",
+        abort=True,
+    )
+
+    # Create IAM user
+    console.print(f"[bold blue]Creating IAM user '[bold green]{name}[/bold green]'...[/bold blue]")
+    try:
+        subprocess.run(
+            ["aws", "iam", "create-user", "--user-name", name],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        error_console.print(f"Error creating IAM user: {e.stderr}")
+        raise typer.Exit(code=1)
+
+    # Attach policy
+    console.print(f"[bold blue]Attaching policy [bold green]{policy_arn}[/bold green]...[/bold blue]")
+    try:
+        subprocess.run(
+            [
+                "aws", "iam", "attach-user-policy",
+                "--user-name", name,
+                "--policy-arn", policy_arn,
+            ],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        error_console.print(f"Error attaching policy: {e.stderr}")
+        raise typer.Exit(code=1)
+
+    # Create access key
+    console.print("[bold blue]Creating access key...[/bold blue]")
+    try:
+        result = subprocess.run(
+            ["aws", "iam", "create-access-key", "--user-name", name, "--output", "json"],
+            capture_output=True,
+            check=True,
+            text=True
+        )
+        key_data = json.loads(result.stdout).get("AccessKey", {})
+    except subprocess.CalledProcessError as e:
+        error_console.print(f"Error creating access key: {e.stderr}")
+        raise typer.Exit(code=1)
+
+    access_key = key_data.get("AccessKeyId")
+    secret_key = key_data.get("SecretAccessKey")
+
+    # Display credentials
+    success_console = Console(style="bold green")
+    success_console.rule("[bold green]")
+    success_console.print("[bold green]✓[/bold green] IAM user created successfully!")
+    success_console.print("")
+    success_console.print("[bold yellow]AWS Credentials for Cirun:[/bold yellow]")
+    success_console.print("")
+    success_console.print(f"  AWS_ACCESS_KEY_ID:     [bold]{access_key}[/bold]")
+    success_console.print(f"  AWS_SECRET_ACCESS_KEY: [bold]{secret_key}[/bold]")
+    success_console.print("")
+    success_console.print("[bold red]⚠️  Save the SECRET_ACCESS_KEY - it won't be shown again![/bold red]")
+    success_console.rule("[bold green]")
+
+    # Auto-connect if requested
+    if auto_connect:
+        console.print("\n[bold blue]Connecting credentials to Cirun...[/bold blue]")
+        credentials = {
+            "access_key": access_key,
+            "secret_key": secret_key,
+        }
+        _connect_cloud(name="aws", credentials=credentials)
+
+
 @cloud_create.command(name="gcp")
 def create_gcp(
         name: str = typer.Option(
