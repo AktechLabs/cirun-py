@@ -40,6 +40,126 @@ cloud_app.add_typer(cloud_connect, name="connect")
 cloud_app.add_typer(cloud_create, name="create")
 
 
+# Inline IAM policy granting all permissions cirun needs for the GitHub Actions
+# Cache feature on AWS. Mirrors the 7 statements documented at
+# https://docs.cirun.io/caching/aws (Step 1) verbatim. The `<ACCOUNT_ID>`
+# placeholder in the STSAssumeRole resource is substituted at apply time.
+AWS_CIRUN_CACHE_POLICY_NAME = "CirunCachePermissions"
+AWS_CIRUN_CACHE_POLICY_TEMPLATE = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3BucketManagement",
+            "Effect": "Allow",
+            "Action": [
+                "s3:CreateBucket",
+                "s3:DeleteBucket",
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "s3:GetBucketVersioning",
+                "s3:PutBucketVersioning",
+            ],
+            "Resource": "arn:aws:s3:::cirun-caching-*",
+        },
+        {
+            "Sid": "S3LifecycleManagement",
+            "Effect": "Allow",
+            "Action": ["s3:PutLifecycleConfiguration"],
+            "Resource": "arn:aws:s3:::cirun-caching-*",
+        },
+        {
+            "Sid": "S3ObjectManagement",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject",
+                "s3:ListMultipartUploadParts",
+                "s3:AbortMultipartUpload",
+            ],
+            "Resource": "arn:aws:s3:::cirun-caching-*/*",
+        },
+        {
+            "Sid": "IAMRoleManagement",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetRole",
+                "iam:ListRoles",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:ListRolePolicies",
+                "iam:GetRolePolicy",
+                "iam:UpdateAssumeRolePolicy",
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/CirunCacheRole",
+                "arn:aws:iam::*:role/CirunCache*Role",
+            ],
+        },
+        {
+            "Sid": "STSOperations",
+            "Effect": "Allow",
+            "Action": ["sts:GetCallerIdentity"],
+            "Resource": "*",
+        },
+        {
+            "Sid": "STSAssumeRole",
+            "Effect": "Allow",
+            "Action": ["sts:AssumeRole"],
+            "Resource": "arn:aws:iam::<ACCOUNT_ID>:role/CirunCache*",
+        },
+        {
+            "Sid": "AllowPolicySimulation",
+            "Effect": "Allow",
+            "Action": [
+                "iam:SimulatePrincipalPolicy",
+                "iam:GetContextKeysForPrincipalPolicy",
+                "iam:GetPolicy",
+                "iam:GetPolicyVersion",
+                "iam:GetUserPolicy",
+                "iam:GetRolePolicy",
+            ],
+            "Resource": "*",
+        },
+    ],
+}
+
+
+def _aws_cache_policy_doc(account_id: str) -> str:
+    """Return the cirun cache policy JSON with the AccountID placeholder replaced."""
+    doc = json.dumps(AWS_CIRUN_CACHE_POLICY_TEMPLATE)
+    return doc.replace("<ACCOUNT_ID>", account_id)
+
+
+def _apply_aws_cache_policy(user_name: str, account_id: str, console: Console, error_console: Console) -> None:
+    """Attach the cirun cache inline policy to an existing IAM user. Idempotent
+    (put-user-policy overwrites). Caller owns the surrounding console output."""
+    policy_doc = _aws_cache_policy_doc(account_id)
+    console.print(
+        f"[bold blue]Applying inline policy [bold green]{AWS_CIRUN_CACHE_POLICY_NAME}[/bold green] "
+        f"to IAM user [bold green]{user_name}[/bold green]...[/bold blue]"
+    )
+    try:
+        subprocess.run(
+            [
+                "aws", "iam", "put-user-policy",
+                "--user-name", user_name,
+                "--policy-name", AWS_CIRUN_CACHE_POLICY_NAME,
+                "--policy-document", policy_doc,
+            ],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        error_console.print(
+            f"Error applying cirun cache policy: {e.stderr.strip() or e.stdout.strip()}"
+        )
+        raise typer.Exit(code=1)
+
+
 @cloud_connect.command()
 def aws(
         access_key=option("--access-key", help="AWS_ACCESS_KEY_ID"),
@@ -254,6 +374,15 @@ def create_aws(
             "--policy-arn",
             help="IAM policy ARN to attach to the user"
         ),
+        with_cache_permissions: bool = typer.Option(
+            True,
+            "--with-cache-permissions/--no-cache-permissions",
+            help=(
+                "Also apply the inline policy needed for the cirun GitHub Actions "
+                "cache feature (S3 + IAM role + STS AssumeRole). Matches the policy "
+                "documented at https://docs.cirun.io/caching/aws."
+            ),
+        ),
         auto_connect: bool = typer.Option(
             False,
             "--auto-connect",
@@ -345,6 +474,15 @@ def create_aws(
         error_console.print(f"Error attaching policy: {e.stderr}")
         raise typer.Exit(code=1)
 
+    # Apply cirun cache permissions inline policy (default on; --no-cache-permissions to skip).
+    if with_cache_permissions:
+        _apply_aws_cache_policy(
+            user_name=name,
+            account_id=caller_identity.get("Account"),
+            console=console,
+            error_console=error_console,
+        )
+
     # Create access key
     console.print("[bold blue]Creating access key...[/bold blue]")
     try:
@@ -383,6 +521,90 @@ def create_aws(
             "secret_key": secret_key,
         }
         _connect_cloud(name="aws", credentials=credentials)
+
+
+@cloud_create.command(name="aws-cache-permissions")
+def apply_aws_cache_permissions(
+        iam_user_name: str = typer.Option(
+            ...,
+            "--iam-user-name",
+            help="Existing IAM user to attach the cirun cache inline policy to.",
+        ),
+        account_id: str = typer.Option(
+            None,
+            "--account-id",
+            help=(
+                "AWS account ID for the STSAssumeRole resource. Defaults to the "
+                "account of the current AWS CLI caller."
+            ),
+        ),
+        yes: bool = typer.Option(
+            False,
+            "--yes",
+            "-y",
+            help="Skip confirmation prompt.",
+        ),
+):
+    """Attach the cirun GitHub Actions Cache IAM policy to an existing AWS IAM user.
+
+    Use this for accounts that were connected to cirun before the cache feature
+    existed (or with --no-cache-permissions on `cirun cloud create aws`). Applies
+    the 7 statements documented at https://docs.cirun.io/caching/aws as a single
+    inline policy named `CirunCachePermissions`. Idempotent: subsequent runs
+    overwrite the same inline policy.
+    """
+    console = Console()
+    error_console = Console(stderr=True, style="bold red")
+
+    # AWS CLI installed?
+    try:
+        subprocess.run(["aws", "--version"], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        error_console.print("Error: AWS CLI is not installed or not found in PATH")
+        raise typer.Exit(code=1)
+
+    # Resolve account ID from caller identity if not provided.
+    if not account_id:
+        try:
+            result = subprocess.run(
+                ["aws", "sts", "get-caller-identity", "--output", "json"],
+                capture_output=True,
+                check=True,
+                text=True,
+            )
+            account_id = json.loads(result.stdout).get("Account")
+        except subprocess.CalledProcessError:
+            error_console.print("Error: Not authenticated with AWS CLI. Pass --account-id or run `aws configure`.")
+            raise typer.Exit(code=1)
+
+    if not account_id:
+        error_console.print("Error: Could not resolve AWS account ID.")
+        raise typer.Exit(code=1)
+
+    console.print(f"[bold green]AWS Account:[/bold green] {account_id}")
+    console.print(f"[bold green]Target IAM user:[/bold green] {iam_user_name}")
+    console.print(f"[bold green]Inline policy name:[/bold green] {AWS_CIRUN_CACHE_POLICY_NAME}")
+
+    if not yes:
+        typer.confirm(
+            f"Apply '{AWS_CIRUN_CACHE_POLICY_NAME}' inline policy to user '{iam_user_name}' in account {account_id}?",
+            abort=True,
+        )
+
+    _apply_aws_cache_policy(
+        user_name=iam_user_name,
+        account_id=account_id,
+        console=console,
+        error_console=error_console,
+    )
+
+    success_console = Console(style="bold green")
+    success_console.rule("[bold green]")
+    success_console.print(f"[bold green]✓[/bold green] Inline policy applied to {iam_user_name}.")
+    success_console.print("")
+    success_console.print("Verify:")
+    success_console.print(f"  aws iam get-user-policy --user-name {iam_user_name} --policy-name {AWS_CIRUN_CACHE_POLICY_NAME}")
+    success_console.rule("[bold green]")
 
 
 @cloud_create.command(name="gcp")
